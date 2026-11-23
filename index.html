@@ -32,6 +32,18 @@
   .titulo p{margin-top:6px;opacity:.9;font-size:.95rem}
 
   main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:32px 20px 48px}
+
+  /* Navegação por abas */
+  .abas{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;padding-bottom:14px;border-bottom:2px solid #e5d8fa}
+  .aba{border:1px solid var(--lilas);border-radius:999px;background:#fff;color:var(--roxo-esc);padding:11px 22px;font:inherit;font-weight:600;cursor:pointer;transition:background .2s,color .2s,transform .2s}
+  .aba:hover{background:var(--roxo-claro);transform:translateY(-1px)}
+  .aba[aria-selected="true"]{background:var(--roxo);border-color:var(--roxo);color:#fff;box-shadow:0 3px 9px rgba(75,26,150,.2)}
+  .aba:focus-visible{outline:3px solid var(--lilas);outline-offset:3px}
+  .tab-panel[hidden]{display:none!important}
+  #comentarios{margin-top:0}
+  .sobre-projeto{background:#fff;border-radius:16px;padding:28px 30px;box-shadow:0 3px 10px rgba(75,26,150,.12)}
+  .sobre-projeto h2{font-size:1.6rem;color:var(--roxo-esc);margin-bottom:16px}
+  .sobre-projeto p{font-size:1.05rem;line-height:1.85;color:var(--texto);text-align:justify}
   #acervo h2{font-size:1.6rem;color:var(--roxo-esc);margin-bottom:6px}
   #acervo .sub{color:#6b5a8e;margin-bottom:20px}
   .busca{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:26px}
@@ -113,7 +125,13 @@
 </header>
 
 <main>
-  <section id="acervo">
+  <div class="abas" role="tablist" aria-label="Navegação principal">
+    <button class="aba" id="aba-acervo" type="button" role="tab" aria-controls="acervo" aria-selected="true" tabindex="0">Acervo</button>
+    <button class="aba" id="aba-comentarios" type="button" role="tab" aria-controls="comentarios" aria-selected="false" tabindex="-1">Comentários</button>
+    <button class="aba" id="aba-sobre" type="button" role="tab" aria-controls="sobre-projeto" aria-selected="false" tabindex="-1">Sobre o projeto</button>
+  </div>
+
+  <section id="acervo" class="tab-panel" role="tabpanel" aria-labelledby="aba-acervo" tabindex="0">
     <h2>Acervo</h2>
     <p class="sub">Clique na capa de um livro para ver o resumo, o autor e o link de acesso.</p>
     <div class="busca">
@@ -123,7 +141,7 @@
     <div class="grade" id="grade"></div>
   </section>
 
-  <section id="comentarios">
+  <section id="comentarios" class="tab-panel" role="tabpanel" aria-labelledby="aba-comentarios" tabindex="0" hidden>
     <h2>Comentários</h2>
     <p class="sub">Deixe seu nome e o seu comentário sobre o acervo.</p>
     <form id="form-com">
@@ -132,6 +150,11 @@
       <button type="submit">Enviar comentário</button>
     </form>
     <div id="lista-com"></div>
+  </section>
+
+  <section id="sobre-projeto" class="tab-panel sobre-projeto" role="tabpanel" aria-labelledby="aba-sobre" tabindex="0" hidden>
+    <h2>Sobre o projeto</h2>
+    <p>Este acervo digital foi desenvolvido sob a orientação dos professores MSc. João Paulo da Silva Andrade,  Dr. Lucas Kallil de Paula Rodrigues e Dr. Marcos Aurélio de Amorim Gomes, em parceria com os estudantes das turmas de 2º ano do Colégio Estadual Heli Alves Ferreira, contemplando as seguintes turmas: 2º A, 2º Técnico em Administração, 2º B, 2º Jogos Digitais e 2º Técnico em Mecânica. O projeto contou ainda com o suporte técnico do professor MSc. Leonardo Santos da Cruz.</p>
   </section>
 </main>
 
@@ -468,6 +491,31 @@ const LIVROS = [
 const grade=document.getElementById('grade'), busca=document.getElementById('busca'),
       contador=document.getElementById('contador'), fundo=document.getElementById('fundo');
 
+/* ===== NAVEGAÇÃO POR ABAS ===== */
+const abas=document.querySelectorAll('[role="tab"]');
+function ativarAba(aba){
+  abas.forEach(item=>{
+    const ativa=item===aba;
+    item.setAttribute('aria-selected',String(ativa));
+    item.tabIndex=ativa?0:-1;
+    document.getElementById(item.getAttribute('aria-controls')).hidden=!ativa;
+  });
+}
+abas.forEach((aba,indice)=>{
+  aba.addEventListener('click',()=>ativarAba(aba));
+  aba.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowRight' && e.key!=='ArrowLeft' && e.key!=='Home' && e.key!=='End') return;
+    e.preventDefault();
+    let proximo=indice;
+    if(e.key==='ArrowRight') proximo=(indice+1)%abas.length;
+    if(e.key==='ArrowLeft') proximo=(indice-1+abas.length)%abas.length;
+    if(e.key==='Home') proximo=0;
+    if(e.key==='End') proximo=abas.length-1;
+    abas[proximo].focus();
+    ativarAba(abas[proximo]);
+  });
+});
+
 function matiz(i){return (i*47+260)%360}
 function montarCapa(el,l,i){
   el.style.background=`linear-gradient(160deg,hsl(${matiz(i)},55%,38%),hsl(${(matiz(i)+40)%360},60%,26%))`;
@@ -506,7 +554,7 @@ function abrir(i){
   const ac=document.getElementById('m-acesso'); ac.innerHTML='';
   if(l.link){
     const a=document.createElement('a'); a.className='btn-link'; a.href=l.link; a.target='_blank'; a.rel='noopener';
-    a.textContent='Acessar os slides'; ac.appendChild(a);
+    a.textContent='Acessar slides'; ac.appendChild(a);
   } else {
     const s=document.createElement('span'); s.className='sem-link'; s.textContent='Link de acesso ao livro: em breve'; ac.appendChild(s);
   }
