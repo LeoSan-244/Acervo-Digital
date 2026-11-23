@@ -506,7 +506,7 @@ function abrir(i){
   const ac=document.getElementById('m-acesso'); ac.innerHTML='';
   if(l.link){
     const a=document.createElement('a'); a.className='btn-link'; a.href=l.link; a.target='_blank'; a.rel='noopener';
-    a.textContent='Acessar o livro'; ac.appendChild(a);
+    a.textContent='Acessar os slides'; ac.appendChild(a);
   } else {
     const s=document.createElement('span'); s.className='sem-link'; s.textContent='Link de acesso ao livro: em breve'; ac.appendChild(s);
   }
